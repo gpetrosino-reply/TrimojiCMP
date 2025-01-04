@@ -37,7 +37,7 @@ class RemoteQuestionsDataSource(
         this.lastRequest = Clock.System.now()
         httpClient
             .safeGet<OpenTDBQuestionsResponse>(
-                urlString = """https://opentdb.com/api.php?amount=${amount}&difficulty=easy"""
+                urlString = """https://opentdb.com/api.php?amount=${amount}"""
             )
             .map { resp ->
                 when (val code = resp.responseCodeEnum) {
