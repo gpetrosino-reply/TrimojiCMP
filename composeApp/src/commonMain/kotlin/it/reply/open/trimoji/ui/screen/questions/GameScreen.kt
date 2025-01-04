@@ -177,8 +177,8 @@ private fun GameScaffold(
                             RoundedCornerShape(
                                 topStart = 0.dp,
                                 topEnd = 0.dp,
-                                bottomEnd = 50.dp,
-                                bottomStart = 50.dp,
+                                bottomEnd = 35.dp,
+                                bottomStart = 35.dp,
                             )
                         )
                         .background(Color.White)
@@ -191,8 +191,8 @@ private fun GameScaffold(
             Column(
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier
-                    .fillMaxWidth()
                     .background(TrimojiColors.mainViolet)
+                    .fillMaxWidth()
                     .height(100.dp)
             ) {
                 bottomBar()

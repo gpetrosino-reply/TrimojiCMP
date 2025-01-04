@@ -21,7 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import it.reply.open.trimoji.ui.designsystem.TrimojiColors
-import it.reply.open.trimoji.ui.designsystem.TrimojiTopBar
+import it.reply.open.trimoji.ui.designsystem.TrimojiShapedTopBar
 
 
 @Composable
@@ -35,10 +35,10 @@ fun ResultsScreen(
 
     Scaffold(
         topBar = {
-            TrimojiTopBar(
+            TrimojiShapedTopBar(
                 onCloseRequest = {
                     onBack()
-                }
+                },
             )
         },
         backgroundColor = TrimojiColors.mainViolet,
@@ -80,6 +80,8 @@ fun ResultsScreen(
                         .fillMaxWidth()
                 ) {
                     TextButton(
+                        modifier = Modifier
+                            .fillMaxWidth(),
                         onClick = {
                             doShare("Hey, I got $correctAnswers correct answers on Trimoji!")
                         }

@@ -4,8 +4,12 @@ import androidx.annotation.FloatRange
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.IconButton
 import androidx.compose.material.LinearProgressIndicator
@@ -79,8 +83,67 @@ fun TrimojiTopBar(
     },
     onCloseRequest: () -> Unit,
 ) {
+    TrimojiTopBarContent(
+        title = title,
+        navigationIconImage = navigationIconImage,
+        onCloseRequest = onCloseRequest,
+    )
+}
+
+@Composable
+fun TopBarBackImage() {
+    Image(
+        painter = painterResource(Res.drawable.ico_back),
+        contentDescription = "back",
+        modifier = Modifier
+            .background(Color.Transparent)
+    )
+}
+
+@Composable
+fun TrimojiShapedTopBar(
+    title: String = "Trimoji",
+    navigationIconImage: @Composable () -> Unit = { TopBarBackImage() },
+    onCloseRequest: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .background(TrimojiColors.mainViolet)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .background(
+                    color = Color.White,
+                    shape = RoundedCornerShape(
+                        topStart = 0.dp,
+                        topEnd = 0.dp,
+                        bottomStart = 35.dp,
+                        bottomEnd = 35.dp,
+                    )
+                )
+        ) {
+            TrimojiTopBarContent(
+                title = title,
+                navigationIconImage = navigationIconImage,
+                onCloseRequest = onCloseRequest,
+            )
+        }
+    }
+}
+
+
+@Composable
+private fun TrimojiTopBarContent(
+    title: String = "Trimoji",
+    navigationIconImage: @Composable () -> Unit = { TopBarBackImage() },
+    onCloseRequest: () -> Unit,
+) {
     TopAppBar(
-        backgroundColor = Color.White,
+        backgroundColor = Color.Transparent,
         elevation = 0.dp,
         title = {
             Text(
@@ -99,7 +162,6 @@ fun TrimojiTopBar(
             ) {
                 navigationIconImage()
             }
-        }
+        },
     )
-
 }
