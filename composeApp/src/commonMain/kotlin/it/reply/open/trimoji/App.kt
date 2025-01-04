@@ -21,7 +21,7 @@ fun App() {
                 startDestination = TrimojiGraph.Splash
             ) {
                 addDestinationToGraph<TrimojiGraph.Splash>(navController)
-                addDestinationToGraph<TrimojiGraph.Questions>(navController)
+                addDestinationToGraph<TrimojiGraph.Game>(navController)
                 addDestinationToGraph<TrimojiGraph.Results>(navController)
             }
         }

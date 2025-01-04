@@ -1,21 +1,23 @@
 package it.reply.open.trimoji.ui.screen.questions
 
 
-sealed interface QuestionsUIState {
-    data object Loading: QuestionsUIState
+sealed interface GameUIState {
+    data object Loading: GameUIState
 
-    data class Error(val msg: String): QuestionsUIState
+    sealed interface ContentReady: GameUIState
+
+    data class Error(val msg: String): ContentReady
 
     data class Pages(
         val pages: List<QuestionPage>,
         val currentPage: Int,
         val timer: Float,
         val timerMax: Float,
-    ): QuestionsUIState
+    ): ContentReady
 
     data class Done(
         val correctCount: Int,
-    ): QuestionsUIState
+    ): GameUIState
 
     data class QuestionPage(
         val questionPlainText: String,

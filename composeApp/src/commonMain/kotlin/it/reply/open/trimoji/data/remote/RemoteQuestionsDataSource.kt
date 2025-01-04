@@ -2,11 +2,13 @@ package it.reply.open.trimoji.data.remote
 
 import com.mohamedrejeb.ksoup.entities.KsoupEntities
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.get
-import it.reply.open.trimoji.data.model.ApiException
+import it.reply.open.trimoji.data.QuestionsDataSource
+import it.reply.open.trimoji.data.model.OpenTDBException
+import it.reply.open.trimoji.data.model.OpenTDBQuestionsResponse
 import it.reply.open.trimoji.data.model.Question
-import it.reply.open.trimoji.data.model.TriviaSetResponse
+import it.reply.open.trimoji.data.remote.util.ApiResult
+import it.reply.open.trimoji.data.remote.util.map
+import it.reply.open.trimoji.data.remote.util.safeGet
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -25,7 +27,7 @@ class RemoteQuestionsDataSource(
     private var lastRequest: Instant? = null
     private val lastRequestMutex = Mutex()
 
-    override suspend fun getTriviaQuestions(amount: Int): List<Question> = lastRequestMutex.withLock {
+    override suspend fun getTriviaQuestions(amount: Int): ApiResult<List<Question>> = lastRequestMutex.withLock {
         val lastRequest = lastRequest
         if(lastRequest != null){
             val elapsedSinceLastRequest = Clock.System.now() - lastRequest
@@ -34,21 +36,22 @@ class RemoteQuestionsDataSource(
 
         this.lastRequest = Clock.System.now()
         httpClient
-            .get("""https://opentdb.com/api.php?amount=${amount}&difficulty=easy""")
-            .body<TriviaSetResponse>()
-            .let { resp ->
+            .safeGet<OpenTDBQuestionsResponse>(
+                urlString = """https://opentdb.com/api.php?amount=${amount}&difficulty=easy"""
+            )
+            .map { resp ->
                 when (val code = resp.responseCodeEnum) {
-                    TriviaSetResponse.OpenTDBResponseCode.Success -> {
+                    OpenTDBQuestionsResponse.OpenTDBResponseCode.Success -> {
                         /*continue*/
                     }
 
-                    TriviaSetResponse.OpenTDBResponseCode.NoResults,
-                    TriviaSetResponse.OpenTDBResponseCode.InvalidParameter,
-                    TriviaSetResponse.OpenTDBResponseCode.TokenNotFound,
-                    TriviaSetResponse.OpenTDBResponseCode.TokenEmpty,
-                    TriviaSetResponse.OpenTDBResponseCode.RateLimit,
+                    OpenTDBQuestionsResponse.OpenTDBResponseCode.NoResults,
+                    OpenTDBQuestionsResponse.OpenTDBResponseCode.InvalidParameter,
+                    OpenTDBQuestionsResponse.OpenTDBResponseCode.TokenNotFound,
+                    OpenTDBQuestionsResponse.OpenTDBResponseCode.TokenEmpty,
+                    OpenTDBQuestionsResponse.OpenTDBResponseCode.RateLimit,
                         -> {
-                        throw ApiException("Received ${code.name} as response code.")
+                        return@getTriviaQuestions ApiResult.OtherError(OpenTDBException(code))
                     }
                 }
                 resp.results.map { it.decode() }

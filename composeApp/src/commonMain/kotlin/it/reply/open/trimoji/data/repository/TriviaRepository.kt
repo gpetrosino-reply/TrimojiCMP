@@ -1,16 +1,17 @@
 package it.reply.open.trimoji.data.repository
 
 import it.reply.open.trimoji.data.model.Question
-import it.reply.open.trimoji.data.remote.QuestionsDataSource
+import it.reply.open.trimoji.data.QuestionsDataSource
+import it.reply.open.trimoji.data.remote.util.ApiResult
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
 class TriviaRepository(
     private val dataSource: QuestionsDataSource,
-    private val dispatcher: CoroutineDispatcher,
+    private val ioDispatcher: CoroutineDispatcher,
 ) {
 
-    suspend fun retrieveQuestionSet(): List<Question> = withContext(dispatcher) {
-        return@withContext dataSource.getTriviaQuestions(10)
+    suspend fun retrieveQuestionSet(amount: Int): ApiResult<List<Question>> = withContext(ioDispatcher) {
+        return@withContext dataSource.getTriviaQuestions(amount)
     }
 }

@@ -1,19 +1,21 @@
 package it.reply.open.trimoji.data.repository
 
-import it.reply.open.trimoji.data.model.ApiException
 import it.reply.open.trimoji.data.model.ChatCompletionMessage
 import it.reply.open.trimoji.data.model.ChatCompletionRequest
 import it.reply.open.trimoji.data.model.ChatCompletionRole
+import it.reply.open.trimoji.data.model.OpenAIModel
 import it.reply.open.trimoji.data.remote.OpenAIDataSource
+import it.reply.open.trimoji.data.remote.util.ApiResult
+import it.reply.open.trimoji.data.remote.util.map
 
 class OpenAIRepository(
     val openAIDataSource: OpenAIDataSource,
 ) {
 
-    suspend fun convertToEmoji(text: String): String {
+    suspend fun convertToEmoji(text: String): ApiResult<String> {
         return openAIDataSource.postChatCompletion(
             body = ChatCompletionRequest(
-                model = "gpt-4o-2024-08-06",
+                model = OpenAIModel.GPT4o,
                 messages = listOf(
                     ChatCompletionMessage(
                         role = ChatCompletionRole.developer,
@@ -31,10 +33,14 @@ class OpenAIRepository(
                     )
                 )
             )
-        ).choices
-            .firstOrNull()
-            ?.message
-            ?.content
-            ?: throw ApiException(message = "OpenAI returned a chat completion with no choices")
+        ).map { response ->
+            response.choices
+                .firstOrNull()
+                ?.message
+                ?.content
+                ?: return ApiResult.OtherError(
+                    cause = IllegalStateException("OpenAI returned a chat completion with no choices")
+                )
+        }
     }
 }

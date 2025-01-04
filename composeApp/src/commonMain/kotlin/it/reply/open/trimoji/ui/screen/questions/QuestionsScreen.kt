@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -47,9 +48,9 @@ import it.reply.open.trimoji.ui.designsystem.TrimojiIconButton
 import it.reply.open.trimoji.ui.designsystem.TrimojiProgressBar
 import it.reply.open.trimoji.ui.designsystem.TrimojiTopBar
 import it.reply.open.trimoji.ui.screen.loading.LoadingScreen
-import it.reply.open.trimoji.ui.screen.questions.QuestionsUIState.AnswerState.Correct
-import it.reply.open.trimoji.ui.screen.questions.QuestionsUIState.AnswerState.Normal
-import it.reply.open.trimoji.ui.screen.questions.QuestionsUIState.AnswerState.Wrong
+import it.reply.open.trimoji.ui.screen.questions.GameUIState.AnswerState.Correct
+import it.reply.open.trimoji.ui.screen.questions.GameUIState.AnswerState.Normal
+import it.reply.open.trimoji.ui.screen.questions.GameUIState.AnswerState.Wrong
 import it.reply.open.trimoji.ui.util.MultiplatformBackHandler
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.vectorResource
@@ -59,22 +60,49 @@ import trimoji.composeapp.generated.resources.ico_close
 import trimoji.composeapp.generated.resources.ico_fwd
 
 @Composable
-fun QuestionsScreen(
-    vm: QuestionsViewModel = koinViewModel(),
+fun GameScreen(
+    vm: GameViewModel = koinViewModel(),
     onDone: (correctAnswersCount: Int) -> Unit,
     onAbort: () -> Unit,
 ) {
-    val uiState by vm.uiState.collectAsStateWithLifecycle()
+    val uiState = vm.uiState.collectAsStateWithLifecycle().value
 
     var showCloseConfirmDialog by remember { mutableStateOf(false) }
 
-    QuestionsScaffold(
-        uiState = uiState,
-        onAnswerClick = vm::onAnswerClick,
-        onNextClick = vm::onNextClick,
-        onCloseRequest = { showCloseConfirmDialog = true },
-        onDone = onDone,
-    )
+    MultiplatformBackHandler {
+        showCloseConfirmDialog = true
+    }
+    when (uiState) {
+        is GameUIState.Loading -> {
+            LoadingScreen()
+        }
+
+
+        is GameUIState.Done -> {
+            onDone(uiState.correctCount)
+        }
+
+        is GameUIState.Error -> {
+            GameErrorScaffold(
+                errorMessage = uiState.msg,
+                onCloseRequest = { showCloseConfirmDialog = true },
+            )
+        }
+
+        is GameUIState.Pages -> {
+            GamePagesScaffold(
+                uiState = uiState,
+                onAnswerClick = { questionPageIndex: Int, answerIndex: Int ->
+                    vm.onAnswerClick(
+                        questionPageIndex,
+                        answerIndex
+                    )
+                },
+                onNextClick = { vm.onNextClick() },
+                onCloseRequest = { showCloseConfirmDialog = true },
+            )
+        }
+    }
 
 
     if (showCloseConfirmDialog) {
@@ -112,51 +140,14 @@ fun QuestionsScreen(
 
 
 @Composable
-fun QuestionsScaffold(
-    uiState: QuestionsUIState,
-    onAnswerClick: (questionPageIndex: Int, selectedAnswer: Int) -> Unit,
-    onNextClick: () -> Unit,
+private fun GameScaffold(
     onCloseRequest: () -> Unit,
-    onDone: (correctAnswersCount: Int) -> Unit,
+    bottomBar: @Composable () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
-
-    MultiplatformBackHandler {
-        onCloseRequest()
-    }
-
-    when (uiState) {
-        is QuestionsUIState.Loading -> {
-            LoadingScreen()
-            return
-        }
-
-        is QuestionsUIState.Error -> {
-            TODO()
-            return
-        }
-
-        is QuestionsUIState.Done -> {
-            onDone(uiState.correctCount)
-            return
-        }
-
-        is QuestionsUIState.Pages -> {}
-    }
-
-
-    val pagerState = rememberPagerState { uiState.pages.size }
-
-    val pages: QuestionsUIState.Pages = uiState
-
-    LaunchedEffect(pages.currentPage) {
-        if (pages.currentPage != pagerState.currentPage) {
-            pagerState.animateScrollToPage(page = pages.currentPage)
-        }
-    }
-
-
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize(),
         topBar = {
             TrimojiTopBar(
                 navigationIconImage = {
@@ -175,9 +166,9 @@ fun QuestionsScaffold(
         content = { scaffoldPadding ->
             Column(
                 modifier = Modifier
+                    .padding(scaffoldPadding)
                     .background(TrimojiColors.mainViolet)
                     .fillMaxSize()
-                    .padding(scaffoldPadding)
             ) {
                 Column(
                     modifier = Modifier
@@ -192,31 +183,11 @@ fun QuestionsScaffold(
                         )
                         .background(Color.White)
                 ) {
-                    HorizontalPager(
-                        state = pagerState,
-                        userScrollEnabled = false,
-                        modifier = Modifier.fillMaxSize()
-                    ) { currentPageIndex ->
-                        when (val currentPage = uiState.pages.getOrNull(currentPageIndex)) {
-                            is QuestionsUIState.QuestionPage -> {
-                                QuestionPage(
-                                    page = currentPage,
-                                    onAnswerClick = { selectedAnswer ->
-                                        onAnswerClick(currentPageIndex, selectedAnswer)
-                                    },
-                                )
-                            }
-
-                            null -> {
-                                TODO()
-                            }
-                        }
-                    }
+                    content()
                 }
             }
         },
         bottomBar = {
-
             Column(
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier
@@ -224,45 +195,112 @@ fun QuestionsScaffold(
                     .background(TrimojiColors.mainViolet)
                     .height(100.dp)
             ) {
-
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(25.dp),
-                ) {
-                    PagesProgressIndicators(
-                        index = pagerState.currentPage,
-                        pagesCount = pagerState.pageCount,
-                        modifier = Modifier.weight(.7f)
-                    )
-                    Spacer(Modifier.weight(.3f))
-                    Spacer(Modifier.size(10.dp))
-                    TrimojiIconButton(
-                        enabled = uiState.pages.getOrNull(pagerState.currentPage)?.givenAnswer != null,
-                        onClick = onNextClick,
-                    ) {
-                        Image(
-                            imageVector = vectorResource(Res.drawable.ico_fwd),
-                            contentDescription = "next",
-                            modifier = Modifier
-                                .size(64.dp)
-                                .padding(15.dp)
-                        )
-                    }
-                }
-
+                bottomBar()
             }
         }
     )
-
-
 }
 
 @Composable
+private fun GamePagesScaffold(
+    uiState: GameUIState.Pages,
+    onAnswerClick: (questionPageIndex: Int, selectedAnswer: Int) -> Unit,
+    onNextClick: () -> Unit,
+    onCloseRequest: () -> Unit,
+) {
+    val pagerState = rememberPagerState { uiState.pages.size }
+
+    LaunchedEffect(uiState.currentPage) {
+        if (uiState.currentPage != pagerState.currentPage) {
+            pagerState.animateScrollToPage(page = uiState.currentPage)
+        }
+    }
+
+    GameScaffold(
+        onCloseRequest = onCloseRequest,
+        content = {
+            HorizontalPager(
+                state = pagerState,
+                userScrollEnabled = false,
+                modifier = Modifier.fillMaxSize()
+            ) { currentPageIndex ->
+                when (val currentPage = uiState.pages.getOrNull(currentPageIndex)) {
+                    is GameUIState.QuestionPage -> {
+                        QuestionPage(
+                            page = currentPage,
+                            onAnswerClick = { selectedAnswer ->
+                                onAnswerClick(currentPageIndex, selectedAnswer)
+                            },
+                        )
+                    }
+
+                    null -> {
+                        ErrorContent(
+                            errorMessage = "Cannot find question with index $currentPageIndex in question set " +
+                                    "with size ${uiState.pages.size}"
+                        )
+                    }
+                }
+            }
+
+        },
+        bottomBar = {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(25.dp),
+            ) {
+                PagesProgressIndicators(
+                    index = pagerState.currentPage,
+                    pagesCount = pagerState.pageCount,
+                    modifier = Modifier.weight(.7f)
+                )
+                Spacer(Modifier.weight(.3f))
+                Spacer(Modifier.size(10.dp))
+                TrimojiIconButton(
+                    enabled = uiState.pages.getOrNull(pagerState.currentPage)?.givenAnswer != null,
+                    onClick = onNextClick,
+                ) {
+                    Image(
+                        imageVector = vectorResource(Res.drawable.ico_fwd),
+                        contentDescription = "next",
+                        modifier = Modifier
+                            .size(64.dp)
+                            .padding(15.dp)
+                    )
+                }
+            }
+
+        }
+    )
+}
+
+@Composable
+private fun GameErrorScaffold(
+    errorMessage: String? = null,
+    onCloseRequest: () -> Unit,
+) {
+    GameScaffold(
+        onCloseRequest = onCloseRequest,
+        content = {
+            ErrorContent(errorMessage)
+        },
+        bottomBar = {
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(114.dp)
+            )
+        },
+    )
+}
+
+
+@Composable
 private fun QuestionPage(
-    page: QuestionsUIState.QuestionPage,
+    page: GameUIState.QuestionPage,
     onAnswerClick: (selectedAnswer: Int) -> Unit,
 ) {
     val answered = page.givenAnswer != null
@@ -312,7 +350,7 @@ private fun QuestionPage(
 private fun AnswerCard(
     enabled: Boolean,
     selected: Boolean,
-    answer: QuestionsUIState.Answer,
+    answer: GameUIState.Answer,
     onAnswerClick: () -> Unit,
 ) {
     val answerShape = remember { RoundedCornerShape(25.dp) }
@@ -408,5 +446,36 @@ private fun PagesProgressIndicators(
     }
 }
 
+@Composable
+private fun ErrorContent(
+    errorMessage: String? = null,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 15.dp)
+    ) {
+        Text(
+            text = "⚠\uFE0F⚠\uFE0F⚠\uFE0F",
+            fontSize = 40.sp,
+        )
+        Spacer(modifier = Modifier.size(15.dp))
+        Text(
+            text = "An Error occurred...",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+        )
+        if (errorMessage != null) {
+            Spacer(modifier = Modifier.size(15.dp))
+            Text(
+                text = errorMessage,
+                softWrap = true
+            )
+        }
+    }
+}
 
 

@@ -13,13 +13,13 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
 import io.ktor.serialization.kotlinx.json.json
 import it.reply.open.trimoji.BuildKonfig
-import it.reply.open.trimoji.data.remote.MemCachedQuestionsDataSource
+import it.reply.open.trimoji.data.cache.MemCachedQuestionsDataSource
 import it.reply.open.trimoji.data.remote.OpenAIDataSource
 import it.reply.open.trimoji.data.remote.RemoteQuestionsDataSource
 import it.reply.open.trimoji.data.repository.OpenAIRepository
 import it.reply.open.trimoji.data.repository.TriviaRepository
-import it.reply.open.trimoji.domain.GetQuestionSetUseCase
-import it.reply.open.trimoji.ui.screen.questions.QuestionsViewModel
+import it.reply.open.trimoji.domain.GetTrimojiGameUseCase
+import it.reply.open.trimoji.ui.screen.questions.GameViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.serialization.json.Json
@@ -41,13 +41,13 @@ val appModule: Module = module {
     }
 
     single {
-        GetQuestionSetUseCase(
+        GetTrimojiGameUseCase(
             triviaRepository = get(),
             openAIRepository = get(),
             defaultDispatcher = get(TrimojiQualifier.Dispatcher.Default)
         )
     }
-    viewModelOf(::QuestionsViewModel)
+    viewModelOf(::GameViewModel)
 }
 
 val dataModule: Module = module {
@@ -69,7 +69,7 @@ val dataModule: Module = module {
     single {
         TriviaRepository(
             dataSource = get<MemCachedQuestionsDataSource>(),
-            dispatcher = get(TrimojiQualifier.Dispatcher.IO),
+            ioDispatcher = get(TrimojiQualifier.Dispatcher.IO),
         )
     }
 

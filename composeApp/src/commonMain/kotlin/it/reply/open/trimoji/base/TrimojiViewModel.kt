@@ -26,7 +26,7 @@ abstract class TrimojiViewModel<UI, EFF>: ViewModel() {
     }
 
     protected val scope by lazy {
-        viewModelScope + Dispatchers.Default
+        viewModelScope + Dispatchers.Default //TODO exception handler
     }
 
     protected fun launchInViewModelScope(

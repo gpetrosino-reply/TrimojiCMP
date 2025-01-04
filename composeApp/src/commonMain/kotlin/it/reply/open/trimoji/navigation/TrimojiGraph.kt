@@ -5,7 +5,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import it.reply.open.trimoji.ui.screen.questions.QuestionsScreen
+import it.reply.open.trimoji.ui.screen.questions.GameScreen
 import it.reply.open.trimoji.ui.screen.results.ResultsScreen
 import it.reply.open.trimoji.ui.screen.splash.SplashScreen
 import kotlinx.serialization.Serializable
@@ -29,7 +29,7 @@ sealed interface TrimojiGraph {
         override fun Content(navController: NavController) {
             SplashScreen(
                 onDoneLoading = {
-                    navController.navigate(Questions)
+                    navController.navigate(Game(10))
                 }
             )
         }
@@ -38,10 +38,12 @@ sealed interface TrimojiGraph {
     //TODO home
 
     @Serializable
-    data object Questions : TrimojiDestination {
+    data class Game(
+        val questionAmount: Int,
+    ) : TrimojiDestination {
         @Composable
         override fun Content(navController: NavController) {
-            QuestionsScreen(
+            GameScreen(
                 onDone = { correctAnswersCount ->
                     navController.navigate(Results(amount = correctAnswersCount)) {
                         popUpTo<Splash>()

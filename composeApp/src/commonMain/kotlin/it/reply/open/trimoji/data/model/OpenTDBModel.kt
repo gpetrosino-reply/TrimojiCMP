@@ -6,7 +6,7 @@ import kotlinx.serialization.Transient
 
 
 @Serializable
-data class TriviaSetResponse(
+data class OpenTDBQuestionsResponse(
     @SerialName("response_code") val responseCode: Int,
     val results: List<Question>,
 ) {
@@ -30,6 +30,9 @@ data class TriviaSetResponse(
     }
 }
 
+data class OpenTDBException(
+    val responseCode: OpenTDBQuestionsResponse.OpenTDBResponseCode
+): RuntimeException(responseCode.toString())
 
 
 @Serializable
