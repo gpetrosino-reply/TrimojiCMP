@@ -101,7 +101,7 @@ fun TopBarBackImage() {
 }
 
 @Composable
-fun TrimojiShapedTopBar(
+fun TrimojiRoundTopBar(
     title: String = "Trimoji",
     navigationIconImage: @Composable () -> Unit = { TopBarBackImage() },
     onCloseRequest: () -> Unit,

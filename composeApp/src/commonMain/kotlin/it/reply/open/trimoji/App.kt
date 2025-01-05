@@ -29,7 +29,7 @@ fun App() {
                 val navController = rememberNavController()
                 NavHost(
                     navController = navController,
-                    startDestination = TrimojiGraph.Splash
+                    startDestination = TrimojiGraph.Results(11)
                 ) {
                     addDestinationToGraph<TrimojiGraph.Splash>(navController)
                     addDestinationToGraph<TrimojiGraph.Game>(navController)

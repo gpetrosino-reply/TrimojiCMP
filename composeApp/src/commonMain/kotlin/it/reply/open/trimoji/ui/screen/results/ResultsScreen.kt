@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomAppBar
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
@@ -21,7 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import it.reply.open.trimoji.ui.designsystem.TrimojiColors
-import it.reply.open.trimoji.ui.designsystem.TrimojiShapedTopBar
+import it.reply.open.trimoji.ui.designsystem.TrimojiRoundTopBar
 
 
 @Composable
@@ -31,11 +33,11 @@ fun ResultsScreen(
     onBack: () -> Unit,
 ) {
 
-    val doShare = rememberShareAction()
+    val doShare: (String) -> Unit = rememberShareAction()
 
     Scaffold(
         topBar = {
-            TrimojiShapedTopBar(
+            TrimojiRoundTopBar(
                 onCloseRequest = {
                     onBack()
                 },
@@ -80,15 +82,19 @@ fun ResultsScreen(
                         .fillMaxWidth()
                 ) {
                     TextButton(
-                        modifier = Modifier
-                            .fillMaxWidth(),
+                        modifier = Modifier,
                         onClick = {
                             doShare("Hey, I got $correctAnswers correct answers on Trimoji!")
-                        }
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            backgroundColor = TrimojiColors.mainGold,
+                            contentColor = Color.Black,
+                        ),
+                        shape = RoundedCornerShape(10.dp)
                     ) {
                         Text(
                             text = "Share",
-                            color = TrimojiColors.mainGold,
+                            fontSize = 20.sp,
                         )
                     }
                 }
