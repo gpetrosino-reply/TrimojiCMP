@@ -12,10 +12,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.rememberNavController
-import it.reply.open.trimoji.navigation.TrimojiGraph
-import it.reply.open.trimoji.navigation.addDestinationToGraph
+import it.reply.open.trimoji.navigation.TrimojiNavHost
 import it.reply.open.trimoji.ui.designsystem.TrimojiColors
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.KoinContext
@@ -26,17 +23,8 @@ fun App() {
     MaterialTheme {
         KoinContext {
             ColoredSystemBars {
-                val navController = rememberNavController()
-                NavHost(
-                    navController = navController,
-                    startDestination = TrimojiGraph.Results(11)
-                ) {
-                    addDestinationToGraph<TrimojiGraph.Splash>(navController)
-                    addDestinationToGraph<TrimojiGraph.Game>(navController)
-                    addDestinationToGraph<TrimojiGraph.Results>(navController)
-                }
+                TrimojiNavHost()
             }
-
         }
     }
 }

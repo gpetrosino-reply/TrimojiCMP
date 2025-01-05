@@ -6,6 +6,7 @@ import it.reply.open.trimoji.di.dataModule
 import it.reply.open.trimoji.di.networkingModule
 import org.koin.core.context.startKoin
 
+@Suppress("FunctionName", "unused")
 fun MainViewController() = ComposeUIViewController(
     configure = {
         startKoin {
