@@ -9,6 +9,8 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.buildkonfig)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.roomPlugin)
 }
 
 kotlin {
@@ -62,6 +64,9 @@ kotlin {
             implementation(libs.kotlinx.datetime)
 
             implementation(libs.ksoup.entities)
+
+            implementation(libs.androidx.room.runtime)
+            implementation(libs.sqlite.bundled)
         }
 
         androidMain.dependencies {
@@ -72,6 +77,8 @@ kotlin {
             implementation(libs.koin.androidx.compose)
 
             implementation(libs.ktor.client.okhttp)
+
+            implementation(libs.androidx.room.paging)
         }
 
         iosMain.dependencies {
@@ -109,6 +116,11 @@ android {
 
 dependencies {
     debugImplementation(compose.uiTooling)
+    add("kspAndroid", libs.androidx.room.compiler)
+    add("kspIosSimulatorArm64", libs.androidx.room.compiler)
+    add("kspIosX64", libs.androidx.room.compiler)
+    add("kspIosArm64", libs.androidx.room.compiler)
+
 }
 
 buildkonfig {
@@ -123,4 +135,8 @@ buildkonfig {
 
         buildConfigField(FieldSpec.Type.STRING, "OPENAI_API_KEY", openAIKey)
     }
+}
+
+room {
+    schemaDirectory("$projectDir/schemas")
 }

@@ -1,5 +1,7 @@
 package it.reply.open.trimoji.di
 
+import androidx.room.RoomDatabase
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngineConfig
 import io.ktor.client.engine.HttpClientEngineFactory
@@ -14,10 +16,12 @@ import io.ktor.client.request.header
 import io.ktor.serialization.kotlinx.json.json
 import it.reply.open.trimoji.BuildKonfig
 import it.reply.open.trimoji.data.cache.MemCachedQuestionsDataSource
+import it.reply.open.trimoji.data.local.TrimojiDatabase
 import it.reply.open.trimoji.data.remote.OpenAIDataSource
 import it.reply.open.trimoji.data.remote.RemoteQuestionsDataSource
 import it.reply.open.trimoji.data.repository.OpenAIRepository
 import it.reply.open.trimoji.data.repository.TriviaRepository
+import it.reply.open.trimoji.data.repository.UserRepository
 import it.reply.open.trimoji.domain.GetTrimojiGameUseCase
 import it.reply.open.trimoji.ui.screen.questions.GameViewModel
 import kotlinx.coroutines.Dispatchers
@@ -26,6 +30,7 @@ import kotlinx.serialization.json.Json
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
+
 
 val appModule: Module = module {
     single(TrimojiQualifier.Dispatcher.Default) {
@@ -51,6 +56,16 @@ val appModule: Module = module {
 }
 
 val dataModule: Module = module {
+    httpClientSingle()
+
+    databaseBuilderSingle()
+
+    single<TrimojiDatabase> {
+        get<RoomDatabase.Builder<TrimojiDatabase>>()
+            .setDriver(BundledSQLiteDriver())
+            .setQueryCoroutineContext(get(TrimojiQualifier.Dispatcher.IO))
+            .build()
+    }
 
     single {
         RemoteQuestionsDataSource(
@@ -67,16 +82,16 @@ val dataModule: Module = module {
     }
 
     single {
-        TriviaRepository(
-            dataSource = get<MemCachedQuestionsDataSource>(),
-            ioDispatcher = get(TrimojiQualifier.Dispatcher.IO),
+        OpenAIDataSource(
+            apiToken = BuildKonfig.OPENAI_API_KEY,
+            httpClient = get(),
         )
     }
 
     single {
-        OpenAIDataSource(
-            apiToken = BuildKonfig.OPENAI_API_KEY,
-            httpClient = get(),
+        TriviaRepository(
+            dataSource = get<MemCachedQuestionsDataSource>(),
+            ioDispatcher = get(TrimojiQualifier.Dispatcher.IO),
         )
     }
 
@@ -85,9 +100,18 @@ val dataModule: Module = module {
             openAIDataSource = get(),
         )
     }
+
+    single {
+        UserRepository(
+            roomDatabase = get(),
+        )
+    }
 }
 
-expect val networkingModule: Module
+
+expect fun Module.httpClientSingle()
+
+expect fun Module.databaseBuilderSingle()
 
 
 /**

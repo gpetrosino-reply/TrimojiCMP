@@ -30,7 +30,7 @@ fun TrimojiNavHost() {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = TrimojiGraph.Results(11)
+        startDestination = TrimojiGraph.Splash
     ) {
         composable<TrimojiGraph.Splash> {
             SplashScreen(
@@ -39,6 +39,11 @@ fun TrimojiNavHost() {
                 }
             )
         }
+
+        composable<TrimojiGraph.Home> {
+
+        }
+
         composable<TrimojiGraph.Game> {
             GameScreen(
                 onDone = { correctAnswersCount ->
@@ -50,8 +55,6 @@ fun TrimojiNavHost() {
                     navController.navigateUp()
                 }
             )
-
-
         }
         composable<TrimojiGraph.Results> { backStackEntry ->
             val correctAnswersCount = backStackEntry.toRoute<TrimojiGraph.Results>().correctAnswersCount
