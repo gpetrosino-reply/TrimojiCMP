@@ -30,7 +30,7 @@ fun TrimojiNavHost() {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = TrimojiGraph.Results(11)
+        startDestination = TrimojiGraph.Splash,
     ) {
         composable<TrimojiGraph.Splash> {
             SplashScreen(
